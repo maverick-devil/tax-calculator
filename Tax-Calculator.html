@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tax Graph</title>
+</head>
+<body>
+    <div>
+        <div style="border:1px solid black; height: 100px; width: 100%;">
+            <input type="number" id="epf" min="0" placeholder="EPF Contribution">
+            <input type="number" id="hli" min="0" placeholder="Home Loan Interest">
+            <input type="number" id="hra" min="0" placeholder="Home Rent">
+            <button onclick="populateChart()">Submit</button>
+        </div>
+        <div>
+            <canvas id="myChart"></canvas>
+        </div>
+    </div> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const calculateTaxNewRegime = (grossIncome) => {
+            let netIncome = grossIncome - 77400;
+            let tax = 0;
+            // console.log("Calculating tax according to New Regime:")
+            if (netIncome > 700000 && netIncome <= 1000000) {
+                netIncome -= 700000;
+                tax = 20000 + netIncome * 0.10;
+            } else if (netIncome > 1000000 && netIncome <= 1200000) {
+                netIncome -= 1000000;
+                tax = 50000 + netIncome * 0.15;
+            } else if (netIncome > 1200000 && netIncome <= 1500000) {
+                netIncome -= 1200000;
+                tax = 80000 + netIncome * 0.2;
+            } else if (netIncome > 1500000) {
+                netIncome -= 1500000;
+                tax = 140000 + netIncome * 0.3;
+            }
+            let taxWithCess = tax * 1.04;
+            return taxWithCess;
+            // console.log("Tax: ", tax, "Tax with Cess: ", taxWithCess);
+        };
+
+        const calculateTaxOldRegime = (grossIncome) => {
+            let epf = parseInt(document.getElementById("epf").value) || 0;
+            let hli = parseInt(document.getElementById("hli").value) || 0;
+            let hra = parseInt(document.getElementById("hra").value) || 0;
+
+            let netIncome = grossIncome - 52400;
+            if (epf > 150000) {
+                epf = 150000;
+            }
+            if (hli > 200000) {
+                hli = 200000;
+            }
+            netIncome -= (epf + hli + hra);
+            let tax = 0;
+            if (netIncome > 500000 && netIncome <= 1000000) {
+                tax = 12500;
+                netIncome -= 500000;
+                tax += netIncome * 0.2;
+            } else if (netIncome > 1000000) {
+                netIncome -= 1000000;
+                tax = 112500 + netIncome * 0.3;
+            }
+            let taxWithCess = tax * 1.04;
+            return taxWithCess;
+        };
+        
+        const labels = Array.from({length: 400}, (_, i) => i*10000 + 250000);
+
+        let data;
+        let config;
+        let generateDataAndConfig = () => {
+            data = {
+                labels: labels,
+                datasets: [{
+                    label: 'New Tax regime',
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: labels.map(calculateTaxNewRegime),
+                },
+                {
+                    label: 'Old Tax regime',
+                    backgroundColor: 'rgb(50, 168, 82)',
+                    borderColor: 'rgb(50, 168, 82)',
+                    data: labels.map(calculateTaxOldRegime),
+                }]
+            };
+            config = {
+                type: 'line',
+                data: data,
+                options: {}
+            };
+        }
+        
+        let myChart;
+        
+        
+        let populateChart = () => {
+            generateDataAndConfig();
+            if (myChart != null) {
+                myChart.destroy();
+            }
+            myChart = new Chart(
+                document.getElementById('myChart'),
+                config
+            );
+        }
+      </script>
+</body>
+</html>
